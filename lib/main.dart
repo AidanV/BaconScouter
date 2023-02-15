@@ -195,6 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             value: matches[currentMatchIndex].isRedAlliance,
                             onChanged: (val) {
                               _allianceBoolean(val);
+                              (context as Element).markNeedsBuild();
                             },
                             activeColor: const Color.fromARGB(255, 255, 0, 0),
                             inactiveThumbColor:
@@ -486,8 +487,11 @@ class SettingsRoute extends StatelessWidget {
                   request.fields.addAll({
                     'meet': meet,
                     'scouter': scouter,
+                  });
+                  request.fields.addAll({
                     'matchNumber': match.matchNumber.toString(),
                     'teamNumber': match.teamNumber.toString(),
+                    'allianceColor': match.isRedAlliance ? "RED" : "BLUE",
                     'score': '1000'
                   });
 

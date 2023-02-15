@@ -14,6 +14,10 @@ class MatchData {
     }
     return matchTitle;
   }
+
+  Map<String, dynamic> getJSON() {
+    return {'matchNumber': matchNumber};
+  }
 }
 
 enum NodeOptions {
