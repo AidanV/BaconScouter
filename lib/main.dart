@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'match_data.dart';
 
 final List<int> _items = List<int>.generate(27, (int index) => index);
+
+List<MatchData> matches = <MatchData>[];
+
+String scouter = "";
+String meet = "ORL";
 
 void main() {
   runApp(const MyApp());
@@ -31,7 +39,7 @@ class MyApp extends StatelessWidget {
                 brightness: Brightness.dark,
                 primary: Color(0xFF558B6E),
                 onPrimary: Color.fromARGB(255, 35, 48, 37),
-                secondary: Color(0xFFFB6107),
+                secondary: Color.fromARGB(255, 251, 96, 7),
                 onSecondary: Color(0xFFFEEFDD),
                 error: Color(0xFFDD0000),
                 onError: Color(0xFFFF0000),
@@ -78,6 +86,145 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _allianceBoolean(val) {
+    setState(() {
+      matches[currentMatchIndex].isRedAlliance = val;
+    });
+  }
+
+  void _editMatchNumber(val) {
+    setState(() {
+      matches[currentMatchIndex].matchNumber = int.parse(val);
+    });
+  }
+
+  void _editTeamNumber(val) {
+    setState(() {
+      matches[currentMatchIndex].teamNumber = int.parse(val);
+    });
+  }
+
+  void _changeCurrentMatch(val) {
+    setState(() {
+      currentMatchIndex = val;
+    });
+  }
+
+  void _addMatch(MatchData match) {
+    setState(() {
+      matches.add(match);
+    });
+  }
+
+  void _incrementNode(int index) {
+    setState(() {
+      matches[currentMatchIndex].grid[index]++;
+      matches[currentMatchIndex].grid[index] %=
+          possibleNodeOptions[index].length;
+    });
+  }
+
+  Widget getImageByNodeOption(NodeOptions nodeOption) {
+    switch (nodeOption) {
+      case NodeOptions.empty:
+        return const SizedBox(
+          width: 64,
+          height: 64,
+        );
+      case NodeOptions.cone:
+        return Image.asset("assets/images/cone.png");
+      case NodeOptions.cube:
+        return Image.asset("assets/images/cube.png");
+    }
+  }
+
+  int currentMatchIndex = 0;
+
+  void editMatch() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(actions: [
+            Form(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      initialValue: (matches[currentMatchIndex].matchNumber ==
+                              -1)
+                          ? ""
+                          : matches[currentMatchIndex].matchNumber.toString(),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        filled: true,
+                        icon: Icon(Icons.numbers),
+                        labelText: "Match #",
+                      ),
+                      onChanged: (value) {
+                        _editMatchNumber(value);
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      initialValue: (matches[currentMatchIndex].teamNumber ==
+                              -1)
+                          ? ""
+                          : matches[currentMatchIndex].teamNumber.toString(),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        filled: true,
+                        icon: Icon(Icons.numbers),
+                        hintText: "1902",
+                        labelText: "Team #",
+                      ),
+                      onChanged: (value) {
+                        _editTeamNumber(value);
+                      },
+                    ),
+                  ),
+                  Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Switch(
+                            value: matches[currentMatchIndex].isRedAlliance,
+                            onChanged: (val) {
+                              _allianceBoolean(val);
+                            },
+                            activeColor: const Color.fromARGB(255, 255, 0, 0),
+                            inactiveThumbColor:
+                                const Color.fromARGB(255, 0, 0, 255),
+                            inactiveTrackColor:
+                                const Color.fromARGB(100, 0, 0, 255),
+                          ),
+                          ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text("Score!")),
+                        ],
+                      )),
+                ],
+              ),
+            ),
+          ]);
+        });
+  }
+
+  void _deleteMatch(index) {
+    setState(() {
+      matches.removeAt(index);
+      if (currentMatchIndex >= matches.length || currentMatchIndex == index) {
+        currentMatchIndex = matches.length - 1;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -86,19 +233,22 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+
     return Scaffold(
         appBar: AppBar(
             // Here we take the value from the MyHomePage object that was created by
             // the App.build method, and use it to set our appbar title.
 
-            title: Text(widget.title),
+            title: Text((matches.isEmpty)
+                ? "Create a match!"
+                : matches[currentMatchIndex].getMatchTitle()),
             actions: [
               ElevatedButton.icon(
                   onPressed: () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SettingsRoute(),
+                          builder: (context) => SettingsRoute(),
                         ));
                   },
                   icon: const Icon(Icons.settings),
@@ -119,86 +269,128 @@ class _MyHomePageState extends State<MyHomePage> {
             // ),
             ),
         drawer: Drawer(
-            child: ListView(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text("Match 1"),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text("Match 2"),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        )),
-        body: TabBarView(
-          children: [
-            GridView.builder(
-              itemCount: _items.length,
-              padding: const EdgeInsets.all(1.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 9,
-                childAspectRatio: 1.33,
-                mainAxisSpacing: 5.0,
-                crossAxisSpacing: 5.0,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: (matches.isEmpty)
+                    ? const Center(child: Text("Add a new match"))
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: matches.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return ListTile(
+                            leading: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                editMatch();
+                              },
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        content: FloatingActionButton(
+                                            onPressed: () {
+                                              _deleteMatch(index);
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Icon(Icons.delete)),
+                                      );
+                                    });
+                              },
+                            ),
+                            title: Text(matches[index].getMatchTitle()),
+                            onTap: () {
+                              _changeCurrentMatch(index);
+                              Navigator.pop(context);
+                            },
+                          );
+                        }),
               ),
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  alignment: Alignment.center,
-                  // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
-                  // decoration: BoxDecoration(
-                  //   borderRadius: BorderRadius.circular(20.0),
-                  // ),
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          ((index % 9) >= 3 && (index % 9) <= 5
-                              ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context).colorScheme.primary)),
+              FloatingActionButton.extended(
+                onPressed: () {
+                  _addMatch(MatchData());
+                  _changeCurrentMatch(matches.length - 1);
+                  editMatch();
+                },
+                icon: const Icon(Icons.add),
+                label: const Text("New Match"),
+              )
+            ],
+          ),
+        ),
+        body: (matches.isEmpty)
+            ? Center(child: Image.asset("assets/images/PigNoBg.png"))
+            : TabBarView(
+                children: [
+                  GridView.builder(
+                    itemCount: _items.length,
+                    padding: const EdgeInsets.all(1.0),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 9,
+                      childAspectRatio: 1.33,
+                      mainAxisSpacing: 5.0,
+                      crossAxisSpacing: 5.0,
                     ),
-                    child: Image.asset(
-                      'assets/images/cube.png',
-                    ),
-                    onPressed: () {},
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
+                        alignment: Alignment.center,
+                        // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
+                        // decoration: BoxDecoration(
+                        //   borderRadius: BorderRadius.circular(20.0),
+                        // ),
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                ((index % 9) >= 3 && (index % 9) <= 5
+                                    ? Theme.of(context).colorScheme.secondary
+                                    : Theme.of(context).colorScheme.primary)),
+                          ),
+                          child:
+                              //"assets/images/cone.png"
+                              getImageByNodeOption(possibleNodeOptions[index]
+                                  [matches[currentMatchIndex].grid[index]]),
+                          onPressed: () {
+                            _incrementNode(index);
+                          },
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
 
-            const Text("hfidlsafldsajlf"),
-            // GridView.builder(
-            //   itemCount: _items.length,
-            //   padding: const EdgeInsets.all(1.0),
-            //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            //     crossAxisCount: 9,
-            //     childAspectRatio: 1.33,
-            //     mainAxisSpacing: 5.0,
-            //     crossAxisSpacing: 5.0,
-            //   ),
-            //   itemBuilder: (BuildContext context, int index) {
-            //     return Container(
-            //       alignment: Alignment.center,
-            //       // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
-            //       // decoration: BoxDecoration(
-            //       //   borderRadius: BorderRadius.circular(20.0),
-            //       // ),
-            //       child: ElevatedButton(
-            //         child: Image.asset(
-            //           'assets/images/cone.png',
-            //         ),
-            //         onPressed: () {},
-            //       ),
-            //     );
-            //   },
-            // ),
-          ],
-        )
+                  const Text("hfidlsafldsajlf"),
+                  // GridView.builder(
+                  //   itemCount: _items.length,
+                  //   padding: const EdgeInsets.all(1.0),
+                  //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  //     crossAxisCount: 9,
+                  //     childAspectRatio: 1.33,
+                  //     mainAxisSpacing: 5.0,
+                  //     crossAxisSpacing: 5.0,
+                  //   ),
+                  //   itemBuilder: (BuildContext context, int index) {
+                  //     return Container(
+                  //       alignment: Alignment.center,
+                  //       // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
+                  //       // decoration: BoxDecoration(
+                  //       //   borderRadius: BorderRadius.circular(20.0),
+                  //       // ),
+                  //       child: ElevatedButton(
+                  //         child: Image.asset(
+                  //           'assets/images/cone.png',
+                  //         ),
+                  //         onPressed: () {},
+                  //       ),
+                  //     );
+                  //   },
+                  // ),
+                ],
+              )
 
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -240,8 +432,6 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class SettingsRoute extends StatelessWidget {
-  const SettingsRoute({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -256,7 +446,7 @@ class SettingsRoute extends StatelessWidget {
         child:
             Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
           SizedBox(
-            width: 1000,
+            width: 500,
             child: TextFormField(
               decoration: const InputDecoration(
                 filled: true,
@@ -264,6 +454,11 @@ class SettingsRoute extends StatelessWidget {
                 hintText: "Wilbur",
                 labelText: "Scouter Name",
               ),
+              onChanged: (value) {
+                scouter = value;
+                (context as Element).markNeedsBuild();
+              },
+              initialValue: scouter,
             ),
           ),
           DropdownButton(
@@ -275,13 +470,46 @@ class SettingsRoute extends StatelessWidget {
                   child: Text(value),
                 );
               }).toList(),
-              onChanged: (string) {}),
+              value: meet,
+              onChanged: (val) {
+                meet = val!;
+                (context as Element).markNeedsBuild();
+              }),
           FloatingActionButton.extended(
-              onPressed: () {},
+              onPressed: () async {
+                for (var match in matches) {
+                  var request = http.MultipartRequest(
+                      'POST',
+                      Uri.parse(
+                          'https://script.google.com/macros/s/AKfycbxgImMU5KsvszMAMOaZ5VYsl0u630yrwg3gCCrAhJ8ZdBYqCUXkpVOlZLOqd5kdOMI/exec?action=storeScouting'));
+                  // print("Match number: " + match.matchNumber.toString());
+                  request.fields.addAll({
+                    'meet': meet,
+                    'scouter': scouter,
+                    'matchNumber': match.matchNumber.toString(),
+                    'teamNumber': match.teamNumber.toString(),
+                    'score': '1000'
+                  });
+
+                  http.StreamedResponse response = await request.send();
+
+                  if (response.statusCode == 200) {
+                    print(await response.stream.bytesToString());
+                  } else {
+                    print(response.reasonPhrase);
+                  }
+                }
+              },
               icon: const Icon(Icons.upload),
               label: const Text("Upload")),
         ]),
       ),
     );
+  }
+
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    throw UnimplementedError();
   }
 }

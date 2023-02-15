@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.bacon_scouting">
+    <uses-permission android:name="android.permission.INTERNET"/>
    <application
         android:label="bacon_scouting"
         android:name="${applicationName}"
