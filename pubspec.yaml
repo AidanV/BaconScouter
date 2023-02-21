@@ -30,6 +30,11 @@ environment:
 dependencies:
   http: ^0.13.5
   path_provider: ^2.0.12
+  path_provider_android: ^2.0.6
+  path_provider_foundation: ^2.1.0
+  path_provider_linux: ^2.0.1
+  path_provider_platform_interface: ^2.0.0
+  path_provider_windows: ^2.0.2
   flutter:
     sdk: flutter
 
@@ -48,12 +53,25 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  plugin_platform_interface: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: path_provider_android
+      ios:
+        default_package: path_provider_foundation
+      linux:
+        default_package: path_provider_linux
+      macos:
+        default_package: path_provider_foundation
+      windows:
+        default_package: path_provider_windows
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
