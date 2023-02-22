@@ -6,21 +6,21 @@ class MatchData {
   late bool isRedAlliance;
   late String matchTitle;
 
-  late int uniqueID;
-
   List<Node> grid = List<Node>.generate(27, (index) => Node(), growable: false);
 
-  MatchData(String uniqueID) {
+  MatchData() {
     matchNumber = -1;
     teamNumber = -1;
     isRedAlliance = false;
-    uniqueID = uniqueID;
   }
 
   MatchData.fromJSON(Map<String, String> dataJSON) {
-    matchNumber = int.parse(dataJSON['matchNumber']!);
-    teamNumber = int.parse(dataJSON['teamNumber']!);
-    isRedAlliance = (dataJSON['allianceColor']!) == 'RED' ? true : false;
+    await setMatchFromJSON(matchJson);
+  }
+    
+
+  String get matchFileName{
+    return '$matchNumber:$teamNumber'
   }
 
   String getMatchTitle() {
@@ -62,7 +62,7 @@ class MatchData {
     };
   }
 
-  Map<String, String> matchJson() {
+  Map<String, String> getMatchJson() {
     var gridJson = <String, String>{};
     var index = 0;
     for (var node in grid) {
@@ -80,12 +80,15 @@ class MatchData {
     return matchInfo;
   }
 
-  void updateFromJson() async {
-    var matchJson = await MatchStorage().readMatch(uniqueID);
+  void updateFromJson() async { // TODO validate this needs to exist
+    var matchJson = await MatchStorage().readMatch(matchName);
+    await setMatchFromJSON(matchJson);
+  }
 
+  void setMatchFromJson(Map<String, dynamic>) async {
     matchNumber = matchJson['matchNumber'];
     teamNumber = matchJson['teamNumber'];
-    isRedAlliance = matchJson['teamNumber'];
+    isRedAlliance = matchJson['allianceColor'];
 
     var index = 0;
     for (var node in grid) {
@@ -96,8 +99,11 @@ class MatchData {
     }
   }
 
-  void deleteMatch() {
-    MatchStorage().deleteMatch(uniqueID);
+  void writeMatch() async {
+    await MatchStorage().writeMatch(getMatchJson(), matchFileName);
+  }
+  void deleteMatch() async {
+    await MatchStorage().deleteMatch(matchFileName);
   }
 }
 

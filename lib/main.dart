@@ -18,9 +18,9 @@ String meet = "ORL";
 
 void main() {
   //TODO: fix periodic save
-  Timer.periodic(const Duration(seconds: 5), (arg) {
-    matchStorage.saveMatches(matches);
-  });
+  // Timer.periodic(const Duration(seconds: 5), (arg) {
+  //   matchStorage.saveMatches(matches);
+  // });
   runApp(const MyApp());
 }
 
@@ -85,6 +85,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  
+  
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -97,20 +99,25 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _allianceBoolean(val) {
-    setState(() {
+    setState(() { //might need async await
       matches[currentMatchIndex].isRedAlliance = val;
+      matches[currentMatchIndex].writeMatch()
     });
   }
 
   void _editMatchNumber(val) {
     setState(() {
+      matches[currentMatchIndex].deleteMatch()
       matches[currentMatchIndex].matchNumber = int.parse(val);
+      matches[currentMatchIndex].writeMatch()
     });
   }
 
   void _editTeamNumber(val) {
     setState(() {
+      matches[currentMatchIndex].deleteMatch()
       matches[currentMatchIndex].teamNumber = int.parse(val);
+      matches[currentMatchIndex].writeMatch()
     });
   }
 
@@ -132,6 +139,17 @@ class _MyHomePageState extends State<MyHomePage> {
       matches[currentMatchIndex].grid[index].state %=
           possibleNodeOptions[index].length;
       matches[currentMatchIndex].grid[index].isAuto = isAuto;
+      matches[currentMatchIndex].writeMatch()
+    });
+  }
+  
+  void _deleteMatch(index) {
+    setState(() {
+      matches[index].deleteMatch();
+      matches.removeAt(index);
+      if (currentMatchIndex >= matches.length || currentMatchIndex == index) {
+        currentMatchIndex = matches.length - 1;
+      }
     });
   }
 
@@ -228,14 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
-  void _deleteMatch(index) {
-    setState(() {
-      matches.removeAt(index);
-      if (currentMatchIndex >= matches.length || currentMatchIndex == index) {
-        currentMatchIndex = matches.length - 1;
-      }
-    });
-  }
+  
 
   @override
   Widget build(BuildContext context) {

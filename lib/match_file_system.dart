@@ -22,29 +22,24 @@ class MatchStorage {
     return directory.path;
   }
 
-  Future<File> localFile(int uniqueID) async {
+  Future<File> localFile(String matchName) async {
     final path = await _localPath;
-    return File('$path/$uniqueID.json');
+    return File('$path/$matchName.json');
   }
 
-  Future<Map<String, dynamic>> readMatch(int uniqueID) async {
-    final file = await localFile(uniqueID);
+  void writeMatch(Map<String, String> matchJson, String matchName) async {
+    final file = await localFile(matchName);
+    file.writeAsString(jsonEncode(matchJson));
+  }
+
+  Future<Map<String, dynamic>> readMatch(String matchName) async {
+    final file = await localFile(matchName);
     final contents = await file.readAsString();
     return jsonDecode(contents);
   }
 
-  // Future<void> saveMatches(matches) async {
-  //   print("saved!!!");
-  //   for (var match in matches) {
-  //     final file = await localFile(match.matchNumber, match.teamNumber);
-  //     Map<String, dynamic> returnJSON = <String, dynamic>{};
-  //     returnJSON.addAll(match.getJSON());
-  //     file.writeAsString(jsonEncode(returnJSON));
-  //   }
-  // }
-
-  Future<List<Map<String, dynamic>>> readMatches() async {
-    List<Map<String, dynamic>> retList = <Map<String, dynamic>>[];
+  Future<List<MatchData>> readMatches() async {
+    List<Map<String, dynamic>> matchList = <Map<String, dynamic>>[];
     try {
       var path = await _localPath;
       Directory directory = Directory(path);
@@ -54,13 +49,12 @@ class MatchStorage {
         var file = File(match.path);
         final contents = await file.readAsString();
 
-        retList.add(jsonDecode(contents));
+        matchList.add(MatchData(jsonDecode(contents)));
       }
     } catch (e) {
-      // If encountering an error, return 0
-      return retList;
+      return List.empty();
     }
-    return retList;
+    return matchList;
   }
 
   Future<List<Map<String, String>>> readMatchesString() async {
@@ -102,8 +96,8 @@ class MatchStorage {
     }
   }
 
-  Future<void> deleteMatch(int uniqueID) async {
-    final file = await localFile(uniqueID);
+  Future<void> deleteMatch(String matchName) async {
+    final file = await localFile(matchName);
     file.delete();
   }
 }
