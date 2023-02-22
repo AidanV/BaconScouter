@@ -14,13 +14,13 @@ class MatchData {
     isRedAlliance = false;
   }
 
-  MatchData.fromJSON(Map<String, String> dataJSON) {
-    await setMatchFromJSON(matchJson);
+  MatchData.fromJSON(Map<String, dynamic> matchJson) {
+    // print("inside from JSON constructor");
+    setMatchFromJson(matchJson);
   }
-    
 
-  String get matchFileName{
-    return '$matchNumber:$teamNumber'
+  String get matchFileName {
+    return '$matchNumber-$teamNumber';
   }
 
   String getMatchTitle() {
@@ -67,7 +67,7 @@ class MatchData {
     var index = 0;
     for (var node in grid) {
       var nodeInfo = ((node.isAuto) ? "A" : "T") + node.state.toString();
-      gridJson.addAll({'$index', nodeInfo} as Map<String, String>);
+      gridJson.addAll({'$index': nodeInfo});
       index++;
     }
     var matchInfo = {
@@ -80,15 +80,17 @@ class MatchData {
     return matchInfo;
   }
 
-  void updateFromJson() async { // TODO validate this needs to exist
-    var matchJson = await MatchStorage().readMatch(matchName);
-    await setMatchFromJSON(matchJson);
+  void updateFromJson() async {
+    // TODO validate this needs to exist
+    var matchJson = await MatchStorage().readMatch(matchFileName);
+    setMatchFromJson(matchJson);
   }
 
-  void setMatchFromJson(Map<String, dynamic>) async {
-    matchNumber = matchJson['matchNumber'];
-    teamNumber = matchJson['teamNumber'];
-    isRedAlliance = matchJson['allianceColor'];
+  void setMatchFromJson(Map<String, dynamic> matchJson) {
+    matchNumber = int.parse(matchJson['matchNumber']);
+    teamNumber = int.parse(matchJson['teamNumber']);
+    isRedAlliance =
+        matchJson['allianceColor'].toString() == "true" ? true : false;
 
     var index = 0;
     for (var node in grid) {
@@ -97,11 +99,14 @@ class MatchData {
       node.state = int.parse(nodeString[1]);
       index++;
     }
+    // print("finished set match from json");
   }
 
-  void writeMatch() async {
-    await MatchStorage().writeMatch(getMatchJson(), matchFileName);
+  void writeMatch() {
+    // print(getMatchJson());
+    MatchStorage().writeMatch(getMatchJson(), matchFileName);
   }
+
   void deleteMatch() async {
     await MatchStorage().deleteMatch(matchFileName);
   }

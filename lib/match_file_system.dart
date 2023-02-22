@@ -7,6 +7,8 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'dart:convert';
 
+import 'match_data.dart';
+
 class MatchStorage {
   MatchStorage._();
   static final MatchStorage _matchStorage = MatchStorage._();
@@ -30,6 +32,7 @@ class MatchStorage {
   void writeMatch(Map<String, String> matchJson, String matchName) async {
     final file = await localFile(matchName);
     file.writeAsString(jsonEncode(matchJson));
+    // print(await file.readAsString());
   }
 
   Future<Map<String, dynamic>> readMatch(String matchName) async {
@@ -39,18 +42,26 @@ class MatchStorage {
   }
 
   Future<List<MatchData>> readMatches() async {
-    List<Map<String, dynamic>> matchList = <Map<String, dynamic>>[];
+    // print("in read matches");
+    List<MatchData> matchList = <MatchData>[];
     try {
       var path = await _localPath;
       Directory directory = Directory(path);
       final matches = directory.listSync().whereType<File>();
 
+      // print("found matches");
+      // print(matches);
       for (var match in matches) {
+        // print(match);
         var file = File(match.path);
         final contents = await file.readAsString();
-
-        matchList.add(MatchData(jsonDecode(contents)));
+        // print(contents);
+        var stringed = jsonDecode(contents);
+        // print(stringed);
+        matchList.add(MatchData.fromJSON(stringed));
+        // print("match list" + matchList.toString());
       }
+      // print("made it through read matches");
     } catch (e) {
       return List.empty();
     }
@@ -58,27 +69,27 @@ class MatchStorage {
   }
 
   Future<List<Map<String, String>>> readMatchesString() async {
-    List<Map<String, dynamic>> JSONList = <Map<String, dynamic>>[];
+    List<Map<String, dynamic>> jsonList = <Map<String, dynamic>>[];
     try {
       var path = await _localPath;
       Directory directory = Directory(path);
       final matches = directory.listSync().whereType<File>();
 
       for (var match in matches) {
-        print("match: " + match.path);
+        // print("match: " + match.path);
         var file = File(match.path);
         final contents = await file.readAsString();
 
-        JSONList.add(jsonDecode(contents));
+        jsonList.add(jsonDecode(contents));
       }
     } catch (e) {
       // If encountering an error, return 0
       return List.empty();
     }
-    List<Map<String, String>> retVal = List.filled(JSONList.length, {});
+    List<Map<String, String>> retVal = List.filled(jsonList.length, {});
     int counter = 0;
-    print("json list: " + JSONList.toString());
-    for (var jsonVal in JSONList) {
+    // print("json list: " + jsonList.toString());
+    for (var jsonVal in jsonList) {
       jsonVal
           .forEach((key, value) => retVal[counter][key] = (value?.toString())!);
 
@@ -97,7 +108,9 @@ class MatchStorage {
   }
 
   Future<void> deleteMatch(String matchName) async {
-    final file = await localFile(matchName);
-    file.delete();
+    try {
+      final file = await localFile(matchName);
+      file.delete();
+    } catch (e) {}
   }
 }

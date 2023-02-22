@@ -16,7 +16,10 @@ List<MatchData> matches = <MatchData>[]; //could make this a hashmap
 String scouter = "";
 String meet = "ORL";
 
-void main() {
+void main() async {
+  matches += await MatchStorage().readMatches();
+  // print(matches);
+
   //TODO: fix periodic save
   // Timer.periodic(const Duration(seconds: 5), (arg) {
   //   matchStorage.saveMatches(matches);
@@ -85,8 +88,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  
-  
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -99,25 +100,32 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _allianceBoolean(val) {
-    setState(() { //might need async await
-      matches[currentMatchIndex].isRedAlliance = val;
-      matches[currentMatchIndex].writeMatch()
+    setState(() {
+      if (matches.isNotEmpty) {
+        //might need async await
+        matches[currentMatchIndex].isRedAlliance = val;
+        matches[currentMatchIndex].writeMatch();
+      }
     });
   }
 
   void _editMatchNumber(val) {
     setState(() {
-      matches[currentMatchIndex].deleteMatch()
-      matches[currentMatchIndex].matchNumber = int.parse(val);
-      matches[currentMatchIndex].writeMatch()
+      if (matches.isNotEmpty) {
+        matches[currentMatchIndex].deleteMatch();
+        matches[currentMatchIndex].matchNumber = int.parse(val);
+        matches[currentMatchIndex].writeMatch();
+      }
     });
   }
 
   void _editTeamNumber(val) {
     setState(() {
-      matches[currentMatchIndex].deleteMatch()
-      matches[currentMatchIndex].teamNumber = int.parse(val);
-      matches[currentMatchIndex].writeMatch()
+      if (matches.isNotEmpty) {
+        matches[currentMatchIndex].deleteMatch();
+        matches[currentMatchIndex].teamNumber = int.parse(val);
+        matches[currentMatchIndex].writeMatch();
+      }
     });
   }
 
@@ -135,20 +143,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementNode(int index, bool isAuto) {
     setState(() {
-      matches[currentMatchIndex].grid[index].state++;
-      matches[currentMatchIndex].grid[index].state %=
-          possibleNodeOptions[index].length;
-      matches[currentMatchIndex].grid[index].isAuto = isAuto;
-      matches[currentMatchIndex].writeMatch()
+      if (matches.isNotEmpty) {
+        matches[currentMatchIndex].grid[index].state++;
+        matches[currentMatchIndex].grid[index].state %=
+            possibleNodeOptions[index].length;
+        matches[currentMatchIndex].grid[index].isAuto = isAuto;
+        matches[currentMatchIndex].writeMatch();
+      }
     });
   }
-  
+
   void _deleteMatch(index) {
     setState(() {
-      matches[index].deleteMatch();
-      matches.removeAt(index);
-      if (currentMatchIndex >= matches.length || currentMatchIndex == index) {
-        currentMatchIndex = matches.length - 1;
+      if (matches.isNotEmpty) {
+        matches[index].deleteMatch();
+        matches.removeAt(index);
+        if (currentMatchIndex >= matches.length || currentMatchIndex == index) {
+          currentMatchIndex = matches.length - 1;
+        }
       }
     });
   }
@@ -246,8 +258,6 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -319,9 +329,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                         content: FloatingActionButton(
                                             onPressed: () {
                                               _deleteMatch(index);
-                                              matchStorage.deleteMatch(
-                                                  matches[index].matchNumber,
-                                                  matches[index].teamNumber);
                                               Navigator.pop(context);
                                             },
                                             child: const Icon(Icons.delete)),
@@ -482,18 +489,13 @@ class SettingsRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: FloatingActionButton(
-            onPressed: () {
-              matchStorage.deleteMatches();
-            },
-            child: const Icon(Icons.delete_forever),
-          )),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: Center(
         child:
             Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
@@ -542,7 +544,7 @@ class SettingsRoute extends StatelessWidget {
                     'meet': meet,
                     'scouter': scouter,
                   });
-                  request.fields.addAll(match.getPOSTJSON());
+                  request.fields.addAll(match.getPostJson());
 
                   http.StreamedResponse response = await request.send();
 
@@ -554,7 +556,7 @@ class SettingsRoute extends StatelessWidget {
 
                     // print(await response.stream.bytesToString());
                   } else {
-                    print(response.reasonPhrase);
+                    // print(response.reasonPhrase);
                   }
                 }
               },
