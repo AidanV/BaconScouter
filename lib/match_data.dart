@@ -5,6 +5,8 @@ class MatchData {
   late int teamNumber;
   late bool isRedAlliance;
   late String matchTitle;
+  late String chargingAuto;
+  late int droppedGP;
 
   List<Node> grid = List<Node>.generate(27, (index) => Node(), growable: false);
 
@@ -12,6 +14,8 @@ class MatchData {
     matchNumber = -1;
     teamNumber = -1;
     isRedAlliance = false;
+    chargingAuto = "";
+    droppedGP = -1;
   }
 
   MatchData.fromJSON(Map<String, dynamic> matchJson) {
@@ -74,6 +78,8 @@ class MatchData {
       'matchNumber': matchNumber.toString(),
       'teamNumber': teamNumber.toString(),
       'allianceColor': isRedAlliance.toString(),
+      'chargingAuto': chargingAuto,
+      'droppedGP': droppedGP.toString(),
     };
 
     matchInfo.addAll(gridJson);
@@ -91,6 +97,8 @@ class MatchData {
     teamNumber = int.parse(matchJson['teamNumber']);
     isRedAlliance =
         matchJson['allianceColor'].toString() == "true" ? true : false;
+    chargingAuto = matchJson['chargingAuto'];
+    droppedGP = matchJson['droppedGP'];
 
     var index = 0;
     for (var node in grid) {

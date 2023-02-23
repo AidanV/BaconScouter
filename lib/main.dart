@@ -88,6 +88,14 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  String _chargingAuto = "Not Attempted";
+
+  void _setChargingAuto(val) {
+    setState(() {
+      _chargingAuto = val;
+    });
+  }
+
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -360,43 +368,104 @@ class _MyHomePageState extends State<MyHomePage> {
             ? Center(child: Image.asset("assets/images/PigNoBg.png"))
             : TabBarView(
                 children: [
-                  GridView.builder(
-                    itemCount: 27, //_items.length,
-                    padding: const EdgeInsets.all(1.0),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 9,
-                      childAspectRatio: 1.33,
-                      mainAxisSpacing: 5.0,
-                      crossAxisSpacing: 5.0,
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        alignment: Alignment.center,
-                        // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
-                        // decoration: BoxDecoration(
-                        //   borderRadius: BorderRadius.circular(20.0),
-                        // ),
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                ((index % 9) >= 3 && (index % 9) <= 5
-                                    ? Theme.of(context).colorScheme.secondary
-                                    : Theme.of(context).colorScheme.primary)),
+                  Column(children: [
+                    SizedBox(
+                        width: double.infinity,
+                        height: 250,
+                        child: GridView.builder(
+                          itemCount: 27, //_items.length,
+                          padding: const EdgeInsets.all(1.0),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 9,
+                            childAspectRatio: 1.33,
+                            mainAxisSpacing: 5.0,
+                            crossAxisSpacing: 5.0,
                           ),
-                          child:
-                              //"assets/images/cone.png"
-                              getImageByNodeOption(possibleNodeOptions[index][
-                                  matches[currentMatchIndex]
-                                      .grid[index]
-                                      .state]),
-                          onPressed: () {
-                            _incrementNode(index, true);
+                          itemBuilder: (BuildContext context, int index) {
+                            return Container(
+                              alignment: Alignment.center,
+                              // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
+                              // decoration: BoxDecoration(
+                              //   borderRadius: BorderRadius.circular(20.0),
+                              // ),
+                              child: ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          ((index % 9) >= 3 && (index % 9) <= 5
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary)),
+                                ),
+                                child:
+                                    //"assets/images/cone.png"
+                                    getImageByNodeOption(
+                                        (matches[currentMatchIndex]
+                                                .grid[index]
+                                                .isAuto)
+                                            ? (possibleNodeOptions[index]
+                                                [matches[currentMatchIndex]
+                                                    .grid[index]
+                                                    .state])
+                                            : (NodeOptions.empty)),
+                                onPressed: () {
+                                  _incrementNode(index, true);
+                                },
+                              ),
+                            );
                           },
+                        )),
+                    Expanded(
+                        child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Expanded(
+                            child: DropdownButton(
+                              items: [
+                                "Attempted",
+                                "Not Attempted",
+                                "Balanced",
+                                "Docked"
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              value: _chargingAuto,
+                              onChanged: (val) {
+                                _setChargingAuto(val);
+                              },
+                            ),
+                          ),
                         ),
-                      );
-                    },
-                  ),
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Text("Dropped Game Pieces"),
+                                IconButton(
+                                  icon: Icon(IconData(0xe24d,
+                                      fontFamily: 'MaterialIcons')),
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: Icon(IconData(0xe24b,
+                                      fontFamily: 'MaterialIcons')),
+                                  onPressed: () {},
+                                ),
+                              ]),
+                        )
+                      ],
+                    ))
+                  ]),
                   GridView.builder(
                     itemCount: 27, //_items.length,
                     padding: const EdgeInsets.all(1.0),
