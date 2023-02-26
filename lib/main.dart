@@ -18,7 +18,7 @@ String meet = "ORL";
 
 void main() async {
   matches += await MatchStorage().readMatches();
-  // print(matches);
+  print(matches);
 
   //TODO: fix periodic save
   // Timer.periodic(const Duration(seconds: 5), (arg) {
@@ -86,24 +86,53 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  String _chargingAuto = "Not Attempted";
-
   void _setChargingAuto(val) {
     setState(() {
-      _chargingAuto = val;
+      matches[currentMatchIndex].chargingAuto = val;
+      matches[currentMatchIndex].writeMatch();
     });
   }
 
-  void _incrementCounter() {
+  void _setChargingTele(val) {
+    setState(() {
+      matches[currentMatchIndex].chargingTele = val;
+      matches[currentMatchIndex].writeMatch();
+    });
+  }
+
+  void _setDefenseScore(val) {
+    setState(() {
+      matches[currentMatchIndex].defenseScore = val;
+      matches[currentMatchIndex].writeMatch();
+    });
+  }
+
+  void _setComment(val) {
+    setState(() {
+      matches[currentMatchIndex].comment = val;
+      matches[currentMatchIndex].writeMatch();
+    });
+  }
+
+  void _setFeeder(val) {
+    setState(() {
+      matches[currentMatchIndex].feeder = val;
+      matches[currentMatchIndex].writeMatch();
+    });
+  }
+
+  void _addToDroppedGamePieces(int increment) {
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
+      int changed = matches[currentMatchIndex].droppedGP + increment;
+      if (changed >= 0) {
+        matches[currentMatchIndex].droppedGP = changed;
+      }
+      matches[currentMatchIndex].writeMatch();
     });
   }
 
@@ -275,6 +304,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
 
+    var controller = TextEditingController();
     return Scaffold(
         appBar: AppBar(
             // Here we take the value from the MyHomePage object that was created by
@@ -366,188 +396,295 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         body: (matches.isEmpty)
             ? Center(child: Image.asset("assets/images/PigNoBg.png"))
-            : TabBarView(
-                children: [
-                  Column(children: [
-                    SizedBox(
-                        width: double.infinity,
-                        height: 250,
-                        child: GridView.builder(
-                          itemCount: 27, //_items.length,
-                          padding: const EdgeInsets.all(1.0),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 9,
-                            childAspectRatio: 1.33,
-                            mainAxisSpacing: 5.0,
-                            crossAxisSpacing: 5.0,
-                          ),
-                          itemBuilder: (BuildContext context, int index) {
-                            return Container(
-                              alignment: Alignment.center,
-                              // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
-                              // decoration: BoxDecoration(
-                              //   borderRadius: BorderRadius.circular(20.0),
-                              // ),
-                              child: ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          ((index % 9) >= 3 && (index % 9) <= 5
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .secondary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .primary)),
-                                ),
-                                child:
-                                    //"assets/images/cone.png"
-                                    getImageByNodeOption(
-                                        (matches[currentMatchIndex]
-                                                .grid[index]
-                                                .isAuto)
-                                            ? (possibleNodeOptions[index]
-                                                [matches[currentMatchIndex]
-                                                    .grid[index]
-                                                    .state])
-                                            : (NodeOptions.empty)),
-                                onPressed: () {
-                                  _incrementNode(index, true);
-                                },
+            : TabBarView(children: [
+                Column(children: [
+                  SizedBox(
+                      width: double.infinity,
+                      height: 320,
+                      child: GridView.builder(
+                        itemCount: 27, //_items.length,
+                        padding: const EdgeInsets.all(1.0),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 9,
+                          childAspectRatio: 1.33,
+                          mainAxisSpacing: 5.0,
+                          crossAxisSpacing: 5.0,
+                        ),
+                        itemBuilder: (BuildContext context, int index) {
+                          return Container(
+                            alignment: Alignment.center,
+                            // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
+                            // decoration: BoxDecoration(
+                            //   borderRadius: BorderRadius.circular(20.0),
+                            // ),
+                            child: ElevatedButton(
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        ((index % 9) >= 3 && (index % 9) <= 5
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .secondary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .primary)),
                               ),
-                            );
-                          },
-                        )),
-                    Expanded(
-                        child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Expanded(
-                            child: DropdownButton(
-                              items: [
-                                "Attempted",
-                                "Not Attempted",
-                                "Balanced",
-                                "Docked"
-                              ].map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              value: _chargingAuto,
-                              onChanged: (val) {
-                                _setChargingAuto(val);
+                              child:
+                                  //"assets/images/cone.png"
+                                  getImageByNodeOption(
+                                      (matches[currentMatchIndex]
+                                              .grid[index]
+                                              .isAuto)
+                                          ? (possibleNodeOptions[index][
+                                              matches[currentMatchIndex]
+                                                  .grid[index]
+                                                  .state])
+                                          : (NodeOptions.empty)),
+                              onPressed: () {
+                                _incrementNode(index, true);
                               },
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Text("Dropped Game Pieces"),
-                                IconButton(
-                                  icon: Icon(IconData(0xe24d,
-                                      fontFamily: 'MaterialIcons')),
-                                  onPressed: () {},
-                                ),
-                                IconButton(
-                                  icon: Icon(IconData(0xe24b,
-                                      fontFamily: 'MaterialIcons')),
-                                  onPressed: () {},
-                                ),
-                              ]),
-                        )
-                      ],
-                    ))
-                  ]),
-                  GridView.builder(
-                    itemCount: 27, //_items.length,
-                    padding: const EdgeInsets.all(1.0),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 9,
-                      childAspectRatio: 1.33,
-                      mainAxisSpacing: 5.0,
-                      crossAxisSpacing: 5.0,
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        alignment: Alignment.center,
-                        // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
-                        // decoration: BoxDecoration(
-                        //   borderRadius: BorderRadius.circular(20.0),
-                        // ),
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                ((index % 9) >= 3 && (index % 9) <= 5
-                                    ? Theme.of(context).colorScheme.secondary
-                                    : Theme.of(context).colorScheme.primary)),
-                          ),
-                          child:
-                              //"assets/images/cone.png"
-                              getImageByNodeOption(possibleNodeOptions[index][
-                                  matches[currentMatchIndex]
-                                      .grid[index]
-                                      .state]),
-                          onPressed: () {
-                            if (!matches[currentMatchIndex]
-                                    .grid[index]
-                                    .isAuto ||
-                                matches[currentMatchIndex].grid[index].state ==
-                                    0) {
-                              _incrementNode(index, false);
-                            }
+                          );
+                        },
+                      )),
+                  Expanded(
+                      child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: DropdownButton(
+                          items: [
+                            "Attempted",
+                            "Not Attempted",
+                            "Balanced",
+                            "Docked"
+                          ].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          value: matches[currentMatchIndex].chargingAuto,
+                          onChanged: (val) {
+                            _setChargingAuto(val);
                           },
                         ),
-                      );
-                    },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              const Text("Dropped Game Pieces",
+                                  style: TextStyle(fontSize: 20)),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () {
+                                  _addToDroppedGamePieces(1);
+                                },
+                              ),
+                              Text(
+                                "${matches[currentMatchIndex].droppedGP}",
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () {
+                                  _addToDroppedGamePieces(-1);
+                                },
+                              ),
+                            ]),
+                      )
+                    ],
+                  ))
+                ]),
+                Column(children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 320,
+                    child: GridView.builder(
+                      itemCount: 27, //_items.length,
+                      padding: const EdgeInsets.all(1.0),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 9,
+                        childAspectRatio: 1.33,
+                        mainAxisSpacing: 5.0,
+                        crossAxisSpacing: 5.0,
+                      ),
+                      itemBuilder: (BuildContext context, int index) {
+                        return Container(
+                          alignment: Alignment.center,
+                          // tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
+                          // decoration: BoxDecoration(
+                          //   borderRadius: BorderRadius.circular(20.0),
+                          // ),
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  ((index % 9) >= 3 && (index % 9) <= 5
+                                      ? Theme.of(context).colorScheme.secondary
+                                      : Theme.of(context).colorScheme.primary)),
+                            ),
+                            child:
+                                //"assets/images/cone.png"
+                                getImageByNodeOption(possibleNodeOptions[index][
+                                    matches[currentMatchIndex]
+                                        .grid[index]
+                                        .state]),
+                            onPressed: () {
+                              if (!matches[currentMatchIndex]
+                                      .grid[index]
+                                      .isAuto ||
+                                  matches[currentMatchIndex]
+                                          .grid[index]
+                                          .state ==
+                                      0) {
+                                _incrementNode(index, false);
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ],
-              )
+                  Expanded(
+                      child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: DropdownButton(
+                          items: [
+                            "Attempted",
+                            "Not Attempted",
+                            "Balanced",
+                            "Docked"
+                          ].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          value: matches[currentMatchIndex].chargingTele,
+                          onChanged: (val) {
+                            _setChargingTele(val);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              const Text("Dropped Game Pieces",
+                                  style: TextStyle(fontSize: 20)),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () {
+                                  _addToDroppedGamePieces(1);
+                                },
+                              ),
+                              Text(
+                                "${matches[currentMatchIndex].droppedGP}",
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () {
+                                  _addToDroppedGamePieces(-1);
+                                },
+                              ),
+                            ]),
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Slider(
+                                label: "Defense",
+                                value: matches[currentMatchIndex].defenseScore,
+                                onChanged: (value) {
+                                  _setDefenseScore(value);
+                                },
+                                min: 0.0,
+                                max: 10.0,
+                                divisions: 10,
+                              )),
+                          Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Row(
+                                children: [
+                                  const Text("Feeder"),
+                                  Switch(
+                                      onChanged: (val) {
+                                        _setFeeder(val);
+                                      },
+                                      value: matches[currentMatchIndex].feeder),
+                                ],
+                              ))
+                        ],
+                      ),
+                      Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: SizedBox(
+                            width: 300,
+                            height: 200,
+                            child: TextFormField(
+                              initialValue: matches[currentMatchIndex].comment,
+                              onChanged: (value) {
+                                _setComment(value);
+                              },
+                              maxLines: 6,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Comments',
+                              ),
+                            ),
+                          ))
+                    ],
+                  ))
+                ]),
 
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        //     child: Column(
-        //       // Column is also a layout widget. It takes a list of children and
-        //       // arranges them vertically. By default, it sizes itself to fit its
-        //       // children horizontally, and tries to be as tall as its parent.
-        //       //
-        //       // Invoke "debug painting" (press "p" in the console, choose the
-        //       // "Toggle Debug Paint" action from the Flutter Inspector in Android
-        //       // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-        //       // to see the wireframe for each widget.
-        //       //
-        //       // Column has various properties to control how it sizes itself and
-        //       // how it positions its children. Here we use mainAxisAlignment to
-        //       // center the children vertically; the main axis here is the vertical
-        //       // axis because Columns are vertical (the cross axis would be
-        //       // horizontal).
-        //       mainAxisAlignment: MainAxisAlignment.center,
-        //       children: <Widget>[
-        //         const Text(
-        //           'You have pushed the button this many times:',
-        //         ),
-        //         Text(
-        //           '$_counter',
-        //           style: Theme.of(context).textTheme.headlineMedium,
-        //         ),
-        //       ],
-        //     ),
-        //   ),
+                // Center is a layout widget. It takes a single child and positions it
+                // in the middle of the parent.
+                //     child: Column(
+                //       // Column is also a layout widget. It takes a list of children and
+                //       // arranges them vertically. By default, it sizes itself to fit its
+                //       // children horizontally, and tries to be as tall as its parent.
+                //       //
+                //       // Invoke "debug painting" (press "p" in the console, choose the
+                //       // "Toggle Debug Paint" action from the Flutter Inspector in Android
+                //       // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+                //       // to see the wireframe for each widget.
+                //       //
+                //       // Column has various properties to control how it sizes itself and
+                //       // how it positions its children. Here we use mainAxisAlignment to
+                //       // center the children vertically; the main axis here is the vertical
+                //       // axis because Columns are vertical (the cross axis would be
+                //       // horizontal).
+                //       mainAxisAlignment: MainAxisAlignment.center,
+                //       children: <Widget>[
+                //         const Text(
+                //           'You have pushed the button this many times:',
+                //         ),
+                //         Text(
+                //           '$_counter',
+                //           style: Theme.of(context).textTheme.headlineMedium,
+                //         ),
+                //       ],
+                //     ),
+                //   ),
 
-        //   floatingActionButton: FloatingActionButton(
-        //     onPressed: _incrementCounter,
-        //     tooltip: 'Increment',
-        //     child: const Icon(Icons.add_a_photo_outlined),
-        //   ), // This trailing comma makes auto-formatting nicer for build methods.
-        );
+                //   floatingActionButton: FloatingActionButton(
+                //     onPressed: _incrementCounter,
+                //     tooltip: 'Increment',
+                //     child: const Icon(Icons.add_a_photo_outlined),
+                //   ), // This trailing comma makes auto-formatting nicer for build methods.
+              ]));
   }
 }
 
@@ -562,6 +699,7 @@ class SettingsRoute extends StatelessWidget {
           icon: const Icon(Icons.close),
           onPressed: () {
             Navigator.pop(context);
+            (context as Element).markNeedsBuild();
           },
         ),
       ),
@@ -617,11 +755,12 @@ class SettingsRoute extends StatelessWidget {
 
                   http.StreamedResponse response = await request.send();
 
-                  if (response.statusCode == 200) {
-                    match.deleteMatch();
-
-                    matches.remove(match);
-                    (context as Element).markNeedsBuild();
+                  if (response.statusCode == 200 ||
+                      response.statusCode == 302) {
+                    SuccessAlertMethod(context);
+                    // match.deleteMatch();
+                    // matches.remove(match);
+                    // (context as Element).markNeedsBuild();
 
                     // print(await response.stream.bytesToString());
                   } else {
@@ -635,4 +774,23 @@ class SettingsRoute extends StatelessWidget {
       ),
     );
   }
+}
+
+void SuccessAlertMethod(BuildContext context) {
+  var alert = AlertDialog(
+    title: const Text("Success!"),
+    actions: [
+      FloatingActionButton(
+          child: const Icon(Icons.check),
+          onPressed: () {
+            Navigator.of(context).pop();
+          })
+    ],
+  );
+
+  showDialog(
+      context: context,
+      builder: (context) {
+        return alert;
+      });
 }

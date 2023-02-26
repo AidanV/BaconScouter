@@ -110,7 +110,11 @@ class MatchStorage {
   Future<void> deleteMatch(String matchName) async {
     try {
       final file = await localFile(matchName);
-      file.delete();
-    } catch (e) {}
+      if (file.existsSync()) {
+        file.delete();
+      }
+    } catch (e) {
+      return;
+    }
   }
 }

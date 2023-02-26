@@ -6,7 +6,11 @@ class MatchData {
   late bool isRedAlliance;
   late String matchTitle;
   late String chargingAuto;
+  late String chargingTele;
+  late double defenseScore;
   late int droppedGP;
+  late String comment;
+  late bool feeder;
 
   List<Node> grid = List<Node>.generate(27, (index) => Node(), growable: false);
 
@@ -14,8 +18,12 @@ class MatchData {
     matchNumber = -1;
     teamNumber = -1;
     isRedAlliance = false;
-    chargingAuto = "";
-    droppedGP = -1;
+    chargingAuto = "Not Attempted";
+    chargingTele = "Not Attempted";
+    defenseScore = 0;
+    droppedGP = 0;
+    comment = "";
+    feeder = false;
   }
 
   MatchData.fromJSON(Map<String, dynamic> matchJson) {
@@ -63,6 +71,12 @@ class MatchData {
       'L3CubesTele': gamePieceInRange(0, 9, false, false),
       'L2CubesTele': gamePieceInRange(9, 18, false, false),
       'L1CubesTele': gamePieceInRange(18, 27, false, false),
+      'droppedGP': droppedGP.toString(),
+      'defenseScore': (defenseScore.round()).toString(),
+      'chargingAuto': chargingAuto,
+      'chargingTele': chargingTele,
+      'comment': comment,
+      'feeder': feeder.toString(),
     };
   }
 
@@ -79,7 +93,11 @@ class MatchData {
       'teamNumber': teamNumber.toString(),
       'allianceColor': isRedAlliance.toString(),
       'chargingAuto': chargingAuto,
+      'chargingTele': chargingTele,
+      'comment': comment,
+      'defenseScore': defenseScore.toString(),
       'droppedGP': droppedGP.toString(),
+      'feeder': feeder.toString(),
     };
 
     matchInfo.addAll(gridJson);
@@ -98,7 +116,11 @@ class MatchData {
     isRedAlliance =
         matchJson['allianceColor'].toString() == "true" ? true : false;
     chargingAuto = matchJson['chargingAuto'];
-    droppedGP = matchJson['droppedGP'];
+    chargingTele = matchJson['chargingTele'];
+    droppedGP = int.parse(matchJson['droppedGP']);
+    defenseScore = double.parse(matchJson['defenseScore']);
+    feeder = matchJson['feeder'].toString() == "true" ? true : false;
+    comment = matchJson['comment'];
 
     var index = 0;
     for (var node in grid) {
