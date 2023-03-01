@@ -11,6 +11,8 @@ class MatchData {
   late int droppedGP;
   late String comment;
   late bool feeder;
+  late bool isScored;
+  late String robot;
 
   List<Node> grid = List<Node>.generate(27, (index) => Node(), growable: false);
 
@@ -24,11 +26,24 @@ class MatchData {
     droppedGP = 0;
     comment = "";
     feeder = false;
+    isScored = false;
+    robot = "";
   }
 
   MatchData.fromJSON(Map<String, dynamic> matchJson) {
     // print("inside from JSON constructor");
     setMatchFromJson(matchJson);
+  }
+
+  MatchData.fromMatchNumberTeamNumberAllianceRobot(
+      this.matchNumber, this.teamNumber, this.isRedAlliance, this.robot) {
+    chargingAuto = "Not Attempted";
+    chargingTele = "Not Attempted";
+    defenseScore = 0;
+    droppedGP = 0;
+    comment = "";
+    feeder = false;
+    isScored = false;
   }
 
   String get matchFileName {
@@ -98,6 +113,8 @@ class MatchData {
       'defenseScore': defenseScore.toString(),
       'droppedGP': droppedGP.toString(),
       'feeder': feeder.toString(),
+      'isScored': isScored.toString(),
+      'robot': robot,
     };
 
     matchInfo.addAll(gridJson);
@@ -106,7 +123,7 @@ class MatchData {
 
   void updateFromJson() async {
     // TODO validate this needs to exist
-    var matchJson = await MatchStorage().readMatch(matchFileName);
+    var matchJson = await MatchStorage().readMatch(this);
     setMatchFromJson(matchJson);
   }
 
@@ -122,6 +139,9 @@ class MatchData {
     feeder = matchJson['feeder'].toString() == "true" ? true : false;
     comment = matchJson['comment'];
 
+    isScored = matchJson['isScored'].toString() == "true" ? true : false;
+    robot = matchJson['robot'];
+
     var index = 0;
     for (var node in grid) {
       var nodeString = matchJson['$index'];
@@ -134,11 +154,11 @@ class MatchData {
 
   void writeMatch() {
     // print(getMatchJson());
-    MatchStorage().writeMatch(getMatchJson(), matchFileName);
+    MatchStorage().writeMatch(this);
   }
 
   void deleteMatch() async {
-    await MatchStorage().deleteMatch(matchFileName);
+    await MatchStorage().deleteMatch(this);
   }
 }
 

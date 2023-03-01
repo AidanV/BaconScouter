@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -17,8 +19,7 @@ String scouter = "";
 String meet = "ORL";
 
 void main() async {
-  matches += await MatchStorage().readMatches();
-  print(matches);
+  matches += await MatchStorage().readMatches('r1');
 
   //TODO: fix periodic save
   // Timer.periodic(const Duration(seconds: 5), (arg) {
@@ -86,6 +87,29 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String? eventID;
+
+  String currentRobot = "";
+
+  String get tabletName {
+    if (currentRobot == "") return "";
+    return (currentRobot[0] == 'r')
+        ? "Red ${currentRobot[1]}"
+        : "Blue ${currentRobot[1]}";
+  }
+
+  void _setRobot(robot) async {
+    print(matches);
+    for (var match in matches) {
+      match.writeMatch();
+    }
+    matches = await MatchStorage().readMatches(currentRobot);
+    print(matches);
+    setState(() {
+      currentRobot = robot;
+    });
+  }
+
   void _setChargingAuto(val) {
     setState(() {
       matches[currentMatchIndex].chargingAuto = val;
@@ -118,6 +142,13 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       matches[currentMatchIndex].feeder = val;
       matches[currentMatchIndex].writeMatch();
+    });
+  }
+
+  void _setIsScored(index, val) {
+    setState(() {
+      matches[index].isScored = val;
+      matches[index].writeMatch();
     });
   }
 
@@ -218,81 +249,154 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int currentMatchIndex = 0;
 
-  void editMatch() {
+  // void editMatch() {
+  //   showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(actions: [
+  //           Form(
+  //             child: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 Padding(
+  //                   padding: const EdgeInsets.all(8.0),
+  //                   child: TextFormField(
+  //                     initialValue: (matches[currentMatchIndex].matchNumber ==
+  //                             -1)
+  //                         ? ""
+  //                         : matches[currentMatchIndex].matchNumber.toString(),
+  //                     keyboardType: TextInputType.number,
+  //                     decoration: const InputDecoration(
+  //                       filled: true,
+  //                       icon: Icon(Icons.numbers),
+  //                       labelText: "Match #",
+  //                     ),
+  //                     onChanged: (value) {
+  //                       _editMatchNumber(value);
+  //                     },
+  //                   ),
+  //                 ),
+  //                 Padding(
+  //                   padding: const EdgeInsets.all(8.0),
+  //                   child: TextFormField(
+  //                     initialValue: (matches[currentMatchIndex].teamNumber ==
+  //                             -1)
+  //                         ? ""
+  //                         : matches[currentMatchIndex].teamNumber.toString(),
+  //                     keyboardType: TextInputType.number,
+  //                     decoration: const InputDecoration(
+  //                       filled: true,
+  //                       icon: Icon(Icons.numbers),
+  //                       hintText: "1902",
+  //                       labelText: "Team #",
+  //                     ),
+  //                     onChanged: (value) {
+  //                       _editTeamNumber(value);
+  //                     },
+  //                   ),
+  //                 ),
+  //                 Padding(
+  //                     padding: const EdgeInsets.all(8.0),
+  //                     child: Row(
+  //                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //                       children: [
+  //                         Switch(
+  //                           value: matches[currentMatchIndex].isRedAlliance,
+  //                           onChanged: (val) {
+  //                             _allianceBoolean(val);
+  //                             (context as Element).markNeedsBuild();
+  //                           },
+  //                           activeColor: const Color.fromARGB(255, 255, 0, 0),
+  //                           inactiveThumbColor:
+  //                               const Color.fromARGB(255, 0, 0, 255),
+  //                           inactiveTrackColor:
+  //                               const Color.fromARGB(100, 0, 0, 255),
+  //                         ),
+  //                         ElevatedButton(
+  //                             onPressed: () {
+  //                               Navigator.pop(context);
+  //                             },
+  //                             child: const Text("Score!")),
+  //                       ],
+  //                     )),
+  //               ],
+  //             ),
+  //           ),
+  //         ]);
+  //       });
+  // }
+
+  void configureMatches() {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(actions: [
-            Form(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      initialValue: (matches[currentMatchIndex].matchNumber ==
-                              -1)
-                          ? ""
-                          : matches[currentMatchIndex].matchNumber.toString(),
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        filled: true,
-                        icon: Icon(Icons.numbers),
-                        labelText: "Match #",
-                      ),
-                      onChanged: (value) {
-                        _editMatchNumber(value);
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      initialValue: (matches[currentMatchIndex].teamNumber ==
-                              -1)
-                          ? ""
-                          : matches[currentMatchIndex].teamNumber.toString(),
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        filled: true,
-                        icon: Icon(Icons.numbers),
-                        hintText: "1902",
-                        labelText: "Team #",
-                      ),
-                      onChanged: (value) {
-                        _editTeamNumber(value);
-                      },
-                    ),
-                  ),
-                  Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Switch(
-                            value: matches[currentMatchIndex].isRedAlliance,
-                            onChanged: (val) {
-                              _allianceBoolean(val);
-                              (context as Element).markNeedsBuild();
-                            },
-                            activeColor: const Color.fromARGB(255, 255, 0, 0),
-                            inactiveThumbColor:
-                                const Color.fromARGB(255, 0, 0, 255),
-                            inactiveTrackColor:
-                                const Color.fromARGB(100, 0, 0, 255),
-                          ),
-                          ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text("Score!")),
-                        ],
-                      )),
-                ],
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          actions: [
+            TextFormField(
+              onChanged: (event) {
+                eventID = event;
+              },
+              decoration: const InputDecoration(
+                hintText: "Event ID",
               ),
             ),
-          ]);
-        });
+            FloatingActionButton.extended(
+                //2023isde1
+                onPressed: () async {
+                  if (eventID != null) {
+                    var request = http.Request(
+                        'GET',
+                        Uri.parse(
+                            'https://www.thebluealliance.com/api/v3/event/$eventID/matches/simple?X-TBA-Auth-Key=Zt9ZHOjjhhakPxAoXWLX1grZg5IRWUkHVfCsMNQMsI8SnHBAyQcaiMiHIJDNnzaJ'));
+
+                    http.StreamedResponse response = await request.send();
+
+                    if (response.statusCode == 200) {
+                      var json =
+                          jsonDecode(await response.stream.bytesToString());
+                      int matchNumber = 0;
+                      for (var match in json) {
+                        for (var i = 0; i < 3; i++) {
+                          MatchData.fromMatchNumberTeamNumberAllianceRobot(
+                                  matchNumber,
+                                  int.parse(match['alliances']['blue']
+                                          ['team_keys'][i]
+                                      .toString()
+                                      .substring(3)),
+                                  false,
+                                  'b${i + 1}')
+                              .writeMatch();
+                          MatchData.fromMatchNumberTeamNumberAllianceRobot(
+                                  matchNumber,
+                                  int.parse(match['alliances']['red']
+                                          ['team_keys'][i]
+                                      .toString()
+                                      .substring(3)),
+                                  true,
+                                  'r${i + 1}')
+                              .writeMatch();
+                        }
+                        matchNumber++;
+                      }
+                      print(await response.stream.bytesToString());
+                    } else {
+                      print(response.reasonPhrase);
+                    }
+                  }
+                },
+                label: const Text("Download matches")),
+            DropdownButtonFormField(
+                items: ["red 1", "red 2", "red 3", "blue 1", "blue 2", "blue 3"]
+                    .map<DropdownMenuItem<String>>((String val) {
+                  return DropdownMenuItem<String>(value: val, child: Text(val));
+                }).toList(),
+                onChanged: (val) {
+                  _setRobot(val![0] + val[val.length - 1]);
+                })
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -312,7 +416,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
             title: Text((matches.isEmpty)
                 ? "Create a match!"
-                : matches[currentMatchIndex].getMatchTitle()),
+                : '${matches[currentMatchIndex].getMatchTitle()}      Scouting Tablet: $tabletName'),
             actions: [
               ElevatedButton.icon(
                   onPressed: () {
@@ -328,6 +432,7 @@ class _MyHomePageState extends State<MyHomePage> {
             bottom: TabBar(
               labelColor: Theme.of(context).colorScheme.background,
               indicatorColor: Colors.black,
+              indicatorWeight: 5,
               tabs: const [
                 Tab(child: Text("Auto")),
                 Tab(child: Text("Tele")),
@@ -352,9 +457,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         itemBuilder: (BuildContext context, int index) {
                           return ListTile(
                             leading: IconButton(
-                              icon: const Icon(Icons.edit),
+                              icon: (matches[currentMatchIndex].isScored)
+                                  ? Icon(Icons.check_box)
+                                  : Icon(Icons.check_box_outline_blank),
                               onPressed: () {
-                                editMatch();
+                                // _changeCurrentMatch(index);
+                                // matches[currentMatchIndex].isScored =
+                                // !matches[currentMatchIndex].isScored;
+                                _setIsScored(index, !matches[index].isScored);
                               },
                             ),
                             trailing: IconButton(
@@ -384,12 +494,10 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               FloatingActionButton.extended(
                 onPressed: () {
-                  _addMatch(MatchData());
-                  _changeCurrentMatch(matches.length - 1);
-                  editMatch();
+                  configureMatches();
                 },
-                icon: const Icon(Icons.add),
-                label: const Text("New Match"),
+                icon: const Icon(Icons.edit),
+                label: const Text("Configure Matches"),
               )
             ],
           ),
@@ -741,6 +849,7 @@ class SettingsRoute extends StatelessWidget {
                 // matchStorage.deleteMatches();
                 // var jsonMatches = await matchStorage.readMatchesString();
                 // NOW ASSUME THAT MATCHES PERFECTLY REPRESENT WHAT IS STORED ON DEVICE
+                var success = true;
                 for (var match in matches) {
                   var request = http.MultipartRequest(
                       'POST',
@@ -755,17 +864,19 @@ class SettingsRoute extends StatelessWidget {
 
                   http.StreamedResponse response = await request.send();
 
-                  if (response.statusCode == 200 ||
-                      response.statusCode == 302) {
-                    SuccessAlertMethod(context);
+                  if (!(response.statusCode == 200 ||
+                      response.statusCode == 302)) {
+                    success = false;
                     // match.deleteMatch();
                     // matches.remove(match);
                     // (context as Element).markNeedsBuild();
 
                     // print(await response.stream.bytesToString());
-                  } else {
-                    // print(response.reasonPhrase);
                   }
+                  // print(response.reasonPhrase);
+                }
+                if (success) {
+                  SuccessAlertMethod(context);
                 }
               },
               icon: const Icon(Icons.upload),

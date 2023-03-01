@@ -17,35 +17,41 @@ class MatchStorage {
     return _matchStorage;
   }
 
-  Future<String> get _localPath async {
+  Future<String> localPath(String robot) async {
     var directoryPath = (await getApplicationDocumentsDirectory()).path;
-    var directory =
-        await Directory('$directoryPath/matches').create(recursive: true);
+    var directory = await Directory('$directoryPath/matches/$robot')
+        .create(recursive: true);
     return directory.path;
   }
 
-  Future<File> localFile(String matchName) async {
-    final path = await _localPath;
+  Future<File> localFile(String robot, String matchName) async {
+    final path = await localPath(robot);
     return File('$path/$matchName.json');
   }
 
-  void writeMatch(Map<String, String> matchJson, String matchName) async {
-    final file = await localFile(matchName);
-    file.writeAsString(jsonEncode(matchJson));
-    // print(await file.readAsString());
+  // void writeMatch(Map<String, String> matchJson, String matchName) async {
+  //   final file = await localFile(matchName);
+  //   file.writeAsString(jsonEncode(matchJson));
+  //   // print(await file.readAsString());
+  // }
+
+  void writeMatch(MatchData matchData) async {
+    final file = await localFile(matchData.robot, matchData.matchFileName);
+    file.writeAsString(jsonEncode(matchData.getMatchJson()));
   }
 
-  Future<Map<String, dynamic>> readMatch(String matchName) async {
-    final file = await localFile(matchName);
+  Future<Map<String, dynamic>> readMatch(MatchData matchData) async {
+    final file = await localFile(matchData.robot, matchData.matchFileName);
     final contents = await file.readAsString();
     return jsonDecode(contents);
   }
 
-  Future<List<MatchData>> readMatches() async {
+  Future<List<MatchData>> readMatches(String robot) async {
     // print("in read matches");
+    // print(robot);
     List<MatchData> matchList = <MatchData>[];
     try {
-      var path = await _localPath;
+      var path = await localPath(robot);
       Directory directory = Directory(path);
       final matches = directory.listSync().whereType<File>();
 
@@ -68,48 +74,48 @@ class MatchStorage {
     return matchList;
   }
 
-  Future<List<Map<String, String>>> readMatchesString() async {
-    List<Map<String, dynamic>> jsonList = <Map<String, dynamic>>[];
+  // Future<List<Map<String, String>>> readMatchesString() async {
+  //   List<Map<String, dynamic>> jsonList = <Map<String, dynamic>>[];
+  //   try {
+  //     var path = await localPath();
+  //     Directory directory = Directory(path);
+  //     final matches = directory.listSync().whereType<File>();
+
+  //     for (var match in matches) {
+  //       // print("match: " + match.path);
+  //       var file = File(match.path);
+  //       final contents = await file.readAsString();
+
+  //       jsonList.add(jsonDecode(contents));
+  //     }
+  //   } catch (e) {
+  //     // If encountering an error, return 0
+  //     return List.empty();
+  //   }
+  //   List<Map<String, String>> retVal = List.filled(jsonList.length, {});
+  //   int counter = 0;
+  //   // print("json list: " + jsonList.toString());
+  //   for (var jsonVal in jsonList) {
+  //     jsonVal
+  //         .forEach((key, value) => retVal[counter][key] = (value?.toString())!);
+
+  //     counter++;
+  //   }
+  //   return retVal;
+  // }
+
+  // Future<void> deleteMatches() async {
+  //   var path = await _localPath;
+  //   Directory directory = Directory(path);
+  //   final matches = directory.listSync().whereType<File>();
+  //   for (var match in matches) {
+  //     match.delete();
+  //   }
+  // }
+
+  Future<void> deleteMatch(MatchData matchData) async {
     try {
-      var path = await _localPath;
-      Directory directory = Directory(path);
-      final matches = directory.listSync().whereType<File>();
-
-      for (var match in matches) {
-        // print("match: " + match.path);
-        var file = File(match.path);
-        final contents = await file.readAsString();
-
-        jsonList.add(jsonDecode(contents));
-      }
-    } catch (e) {
-      // If encountering an error, return 0
-      return List.empty();
-    }
-    List<Map<String, String>> retVal = List.filled(jsonList.length, {});
-    int counter = 0;
-    // print("json list: " + jsonList.toString());
-    for (var jsonVal in jsonList) {
-      jsonVal
-          .forEach((key, value) => retVal[counter][key] = (value?.toString())!);
-
-      counter++;
-    }
-    return retVal;
-  }
-
-  Future<void> deleteMatches() async {
-    var path = await _localPath;
-    Directory directory = Directory(path);
-    final matches = directory.listSync().whereType<File>();
-    for (var match in matches) {
-      match.delete();
-    }
-  }
-
-  Future<void> deleteMatch(String matchName) async {
-    try {
-      final file = await localFile(matchName);
+      final file = await localFile(matchData.robot, matchData.matchFileName);
       if (file.existsSync()) {
         file.delete();
       }
