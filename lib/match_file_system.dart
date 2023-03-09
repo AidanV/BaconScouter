@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
@@ -104,14 +105,19 @@ class MatchStorage {
   //   return retVal;
   // }
 
-  // Future<void> deleteMatches() async {
-  //   var path = await _localPath;
-  //   Directory directory = Directory(path);
-  //   final matches = directory.listSync().whereType<File>();
-  //   for (var match in matches) {
-  //     match.delete();
-  //   }
-  // }
+  Future<void> deleteMatches() async {
+    List<String> colors = ['r', 'b'];
+    for (var color in colors) {
+      for (var i = 1; i < 4; i++) {
+        var path = await localPath("$color$i");
+        Directory directory = Directory(path);
+        final matches = directory.listSync().whereType<File>();
+        for (var match in matches) {
+          match.delete();
+        }
+      }
+    }
+  }
 
   Future<void> deleteMatch(MatchData matchData) async {
     try {

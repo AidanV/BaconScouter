@@ -11,6 +11,7 @@ class MatchData {
   late int droppedGP;
   late String comment;
   late bool feeder;
+  late bool exitedCommunity;
   late bool isScored;
   late String robot;
 
@@ -26,6 +27,7 @@ class MatchData {
     droppedGP = 0;
     comment = "";
     feeder = false;
+    exitedCommunity = false;
     isScored = false;
     robot = "";
   }
@@ -43,6 +45,7 @@ class MatchData {
     droppedGP = 0;
     comment = "";
     feeder = false;
+    exitedCommunity = false;
     isScored = false;
   }
 
@@ -92,6 +95,7 @@ class MatchData {
       'chargingTele': chargingTele,
       'comment': comment,
       'feeder': feeder.toString(),
+      'exitedCommunity': exitedCommunity.toString(),
     };
   }
 
@@ -113,6 +117,7 @@ class MatchData {
       'defenseScore': defenseScore.toString(),
       'droppedGP': droppedGP.toString(),
       'feeder': feeder.toString(),
+      'exitedCommunity': exitedCommunity.toString(),
       'isScored': isScored.toString(),
       'robot': robot,
     };
@@ -137,6 +142,8 @@ class MatchData {
     droppedGP = int.parse(matchJson['droppedGP']);
     defenseScore = double.parse(matchJson['defenseScore']);
     feeder = matchJson['feeder'].toString() == "true" ? true : false;
+    exitedCommunity =
+        matchJson['exitedCommunity'].toString() == "true" ? true : false;
     comment = matchJson['comment'];
 
     isScored = matchJson['isScored'].toString() == "true" ? true : false;
