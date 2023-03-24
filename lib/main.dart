@@ -619,10 +619,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                                     (index % 9) <= 5
                                                 ? Theme.of(context)
                                                     .colorScheme
-                                                    .secondary
+                                                    .surface
                                                 : Theme.of(context)
                                                     .colorScheme
-                                                    .primary)),
+                                                    .secondary)),
                                   ),
                                   child:
                                       //"assets/images/cone.png"
@@ -737,7 +737,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ((index % 9) >= 3 && (index % 9) <= 5
                                               ? Theme.of(context)
                                                   .colorScheme
-                                                  .secondary
+                                                  .surface
                                               : Theme.of(context)
                                                   .colorScheme
                                                   .primary)),
@@ -813,37 +813,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ]),
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Slider(
-                                    label: "Defense",
-                                    value:
-                                        matches[currentMatchIndex].defenseScore,
-                                    onChanged: (value) {
-                                      _setDefenseScore(value);
-                                    },
-                                    min: 0.0,
-                                    max: 10.0,
-                                    divisions: 10,
-                                  )),
-                              Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Row(
-                                    children: [
-                                      const Text("Feeder"),
-                                      Switch(
-                                          onChanged: (val) {
-                                            _setFeeder(val);
-                                          },
-                                          value: matches[currentMatchIndex]
-                                              .feeder),
-                                    ],
-                                  ))
-                            ],
-                          ),
+                          Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Slider(
+                                label: "Defense",
+                                value: matches[currentMatchIndex].defenseScore,
+                                onChanged: (value) {
+                                  _setDefenseScore(value);
+                                },
+                                min: 0.0,
+                                max: 10.0,
+                                divisions: 10,
+                              )),
                           Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: SizedBox(
